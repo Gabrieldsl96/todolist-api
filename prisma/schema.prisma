@@ -1,0 +1,66 @@
+// prisma/schema.prisma
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Modelo de Usuário
+model User {
+    id        String   @id @default(cuid())
+    email     String   @unique
+    name      String
+    password  String? // Opcional para OAuth
+    googleId  String?  @unique
+    githubId  String?  @unique
+    avatar    String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relações
+    refreshTokens RefreshToken[]
+    todos         Todo[]
+}
+
+// Tokens de Refresh para autenticação
+model RefreshToken {
+    id        String   @id @default(cuid())
+    token     String   @unique
+    userId    String
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    expiresAt DateTime
+}
+
+// Modelo de To-Do
+model Todo {
+    id          String    @id @default(cuid())
+    title       String
+    description String?
+    completed   Boolean   @default(false)
+    priority    Priority  @default(MEDIUM)
+    dueDate     DateTime?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    // Relação com usuário
+    userId String
+    user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // Índices para melhor performance
+    @@index([userId])
+    @@index([completed])
+    @@index([dueDate])
+}
+
+// Enum para prioridade
+enum Priority {
+    LOW
+    MEDIUM
+    HIGH
+    URGENT
+}

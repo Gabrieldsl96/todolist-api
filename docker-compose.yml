@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: todolist-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: todouser
+      POSTGRES_PASSWORD: todopass
+      POSTGRES_DB: todolist
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - todolist-network
+
+  # API Node.js (opcional - para produção)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: todolist-api
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    ports:
+      - '4000:4000'
+    depends_on:
+      - postgres
+    networks:
+      - todolist-network
+    volumes:
+      - ./src:/app/src
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+
+
+networks:
+  todolist-network:
+    driver: bridge
