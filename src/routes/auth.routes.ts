@@ -14,9 +14,9 @@ import { validate } from '../middleware/validation';
 import { authenticateJWT } from '../middleware/auth';
 import { registerSchema, loginSchema, refreshTokenSchema } from '../validations/schemas';
 import { generateAccessToken, generateRefreshToken, saveRefreshToken } from '../lib/jwt';
+import { env } from '../lib/env';
 
-const router = Router();
-
+const router: Router = Router();
 /**
  * POST /api/auth/register
  * Registra novo usuário
@@ -75,7 +75,7 @@ router.get(
     async (req, res) => {
         try {
             if (!req.user) {
-                return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+                return res.redirect(`${env.FRONTEND_URL}/login?error=auth_failed`);
             }
 
             // Gera tokens
@@ -93,11 +93,11 @@ router.get(
 
             // Redireciona para o frontend com tokens
             return res.redirect(
-                `${process.env.FRONTEND_URL}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
+                `${env.FRONTEND_URL}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
             );
         } catch (error) {
             console.error('Erro no callback do Google:', error);
-            return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+            return res.redirect(`${env.FRONTEND_URL}/login?error=server_error`);
         }
     }
 );
@@ -124,7 +124,7 @@ router.get(
     async (req, res) => {
         try {
             if (!req.user) {
-                return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
+                return res.redirect(`${env.FRONTEND_URL}/login?error=auth_failed`);
             }
 
             // Gera tokens
@@ -142,11 +142,11 @@ router.get(
 
             // Redireciona para o frontend com tokens
             return res.redirect(
-                `${process.env.FRONTEND_URL}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
+                `${env.FRONTEND_URL}/auth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
             );
         } catch (error) {
             console.error('Erro no callback do GitHub:', error);
-            return res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+            return res.redirect(`${env.FRONTEND_URL}/login?error=server_error`);
         }
     }
 );

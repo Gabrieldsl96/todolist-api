@@ -18,7 +18,7 @@ import {
     getTodosQuerySchema,
 } from '../validations/schemas';
 
-const router = Router();
+const router: Router = Router();
 
 // Todas as rotas de To-Do requerem autenticação
 router.use(authenticateJWT);

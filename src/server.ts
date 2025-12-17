@@ -1,10 +1,11 @@
 // src/server.ts
 
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response, NextFunction, Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { validateEnv, env } from './lib/env';
 import passport from './lib/passport';
 import authRoutes from './routes/auth.routes';
 import todoRoutes from './routes/todo.routes';
@@ -12,8 +13,11 @@ import todoRoutes from './routes/todo.routes';
 // Carrega variáveis de ambiente
 dotenv.config({ path: '.env.local' });
 
-const app = express();
-const PORT = process.env.PORT || 4000;
+// Valida variáveis de ambiente obrigatórias
+validateEnv();
+
+const app: Express = express();
+const PORT = env.PORT;
 
 /**
  * Middlewares Globais
@@ -25,7 +29,7 @@ app.use(helmet());
 // CORS
 app.use(
     cors({
-        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+        origin: env.CORS_ORIGIN,
         credentials: true,
     })
 );
@@ -35,7 +39,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Logging de requisições (apenas em desenvolvimento)
-if (process.env.NODE_ENV === 'development') {
+if (env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
@@ -45,7 +49,7 @@ app.use(passport.initialize());
 /**
  * Health Check
  */
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({
         success: true,
         message: 'API To-Do List está funcionando!',
@@ -73,30 +77,32 @@ app.use('*', (req: Request, res: Response) => {
 /**
  * Error Handler Global
  */
-app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Erro não tratado:', error);
 
     res.status(500).json({
         success: false,
         message: 'Erro interno do servidor',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        error: env.NODE_ENV === 'development' ? error.message : undefined,
     });
 });
 
 /**
  * Inicia o servidor
  */
-app.listen(PORT, () => {
-    console.log(`
+if (env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`
 ╔════════════════════════════════════════╗
 ║   🚀 Servidor rodando em:             ║
-║   http://localhost:${PORT}             ║
+║   http://localhost:${PORT}                ║
 ║                                        ║
 ║   📝 API To-Do List                   ║
 ║   🔐 Autenticação: JWT + OAuth        ║
 ║   🗄️  Banco de Dados: PostgreSQL      ║
 ╚════════════════════════════════════════╝
-  `);
-});
+    `);
+    });
+}
 
 export default app;

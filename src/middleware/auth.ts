@@ -2,36 +2,28 @@
 
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
-import { User } from '@prisma/client';
-
-/**
- * Estende o tipo Request do Express para incluir user
- */
-declare global {
-    namespace Express {
-        interface User extends Omit<User, 'password'> { }
-    }
-}
 
 /**
  * Middleware de autenticação JWT
  * Protege rotas que requerem usuário autenticado
  */
-export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('jwt', { session: false }, (error: Error, user: User | false) => {
-        if (error) {
-            return res.status(500).json({
+export const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
+    passport.authenticate('jwt', { session: false }, (err: any, user: Express.User | false): void => {
+        if (err) {
+            res.status(500).json({
                 success: false,
                 message: 'Erro ao autenticar',
-                error: error.message,
+                error: err?.message || 'Erro desconhecido',
             });
+            return;
         }
 
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message: 'Token inválido ou expirado',
             });
+            return;
         }
 
         req.user = user;
@@ -43,8 +35,8 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
  * Middleware opcional de autenticação
  * Permite acesso mesmo sem autenticação, mas popula req.user se token válido
  */
-export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('jwt', { session: false }, (error: Error, user: User | false) => {
+export const optionalAuth = (req: Request, res: Response, next: NextFunction): void => {
+    passport.authenticate('jwt', { session: false }, (_err: any, user: Express.User | false): void => {
         if (user) {
             req.user = user;
         }

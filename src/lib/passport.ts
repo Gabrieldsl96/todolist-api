@@ -7,6 +7,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import bcrypt from 'bcrypt';
 import { prisma } from './prisma';
+import { env } from './env';
 import { JwtPayload } from './jwt';
 
 /**
@@ -51,7 +52,7 @@ passport.use(
     new JwtStrategy(
         {
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: process.env.JWT_ACCESS_SECRET!,
+            secretOrKey: env.JWT_ACCESS_SECRET,
         },
         async (payload: JwtPayload, done) => {
             try {
@@ -74,15 +75,15 @@ passport.use(
 /**
  * Estratégia Google OAuth2
  */
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
     passport.use(
         new GoogleStrategy(
             {
-                clientID: process.env.GOOGLE_CLIENT_ID,
-                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/api/auth/google/callback',
+                clientID: env.GOOGLE_CLIENT_ID,
+                clientSecret: env.GOOGLE_CLIENT_SECRET,
+                callbackURL: env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/api/auth/google/callback',
             },
-            async (accessToken, refreshToken, profile, done) => {
+            async (_accessToken, _refreshToken, profile, done) => {
                 try {
                     // Verifica se usuário já existe
                     let user = await prisma.user.findUnique({
@@ -113,15 +114,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 /**
  * Estratégia GitHub OAuth2
  */
-if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
     passport.use(
         new GitHubStrategy(
             {
-                clientID: process.env.GITHUB_CLIENT_ID,
-                clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                callbackURL: process.env.GITHUB_CALLBACK_URL || 'http://localhost:4000/api/auth/github/callback',
+                clientID: env.GITHUB_CLIENT_ID,
+                clientSecret: env.GITHUB_CLIENT_SECRET,
+                callbackURL: env.GITHUB_CALLBACK_URL || 'http://localhost:4000/api/auth/github/callback',
             },
-            async (accessToken: string, refreshToken: string, profile: any, done: any) => {
+            async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
                 try {
                     // Verifica se usuário já existe
                     let user = await prisma.user.findUnique({

@@ -1,7 +1,8 @@
 // src/lib/jwt.ts
 
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { prisma } from './prisma';
+import { env } from './env';
 
 /**
  * Payload do JWT
@@ -15,18 +16,18 @@ export interface JwtPayload {
  * Gera um Access Token (curta duração - 15 minutos)
  */
 export function generateAccessToken(payload: JwtPayload): string {
-    return jwt.sign(payload, process.env.JWT_ACCESS_SECRET!, {
-        expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
-    });
+    return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+        expiresIn: env.JWT_ACCESS_EXPIRES_IN,
+    } as SignOptions);
 }
 
 /**
  * Gera um Refresh Token (longa duração - 7 dias)
  */
 export function generateRefreshToken(payload: JwtPayload): string {
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
-        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-    });
+    return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
+        expiresIn: env.JWT_REFRESH_EXPIRES_IN,
+    } as SignOptions);
 }
 
 /**
@@ -34,7 +35,7 @@ export function generateRefreshToken(payload: JwtPayload): string {
  */
 export function verifyAccessToken(token: string): JwtPayload {
     try {
-        return jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as JwtPayload;
+        return jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
     } catch (error) {
         throw new Error('Token inválido ou expirado');
     }
@@ -45,7 +46,7 @@ export function verifyAccessToken(token: string): JwtPayload {
  */
 export function verifyRefreshToken(token: string): JwtPayload {
     try {
-        return jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as JwtPayload;
+        return jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
     } catch (error) {
         throw new Error('Refresh token inválido ou expirado');
     }
@@ -55,8 +56,7 @@ export function verifyRefreshToken(token: string): JwtPayload {
  * Salva um Refresh Token no banco de dados
  */
 export async function saveRefreshToken(userId: string, token: string): Promise<void> {
-    const expiresIn = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
-    const expiresInMs = parseExpiration(expiresIn);
+    const expiresInMs = parseExpiration(env.JWT_REFRESH_EXPIRES_IN);
     const expiresAt = new Date(Date.now() + expiresInMs);
 
     await prisma.refreshToken.create({

@@ -7,7 +7,7 @@ import { ZodSchema } from 'zod';
  * Middleware genérico de validação com Zod
  */
 export const validate = (schema: ZodSchema, source: 'body' | 'query' | 'params' = 'body') => {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction): Response | void => {
         try {
             // Valida os dados com o schema Zod
             const data = req[source];
